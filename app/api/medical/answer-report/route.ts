@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { getClientIp } from '@/lib/api-helpers';
 import { addAnswerReport } from '@/lib/answer-reports-store';
 import { checkApiRateLimit } from '@/lib/security-utils';
 
@@ -18,7 +19,7 @@ const AnswerReportSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local';
+  const clientIp = getClientIp(req);
   if (!checkApiRateLimit(`answer-report:${clientIp}`, 15, 60_000)) {
     return NextResponse.json(
       { error: 'Too many submissions. Please wait a moment.' },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { getClientIp } from '@/lib/api-helpers';
 import { checkMedicineSafety } from '@/lib/drug-interactions';
 import { checkApiRateLimit } from '@/lib/security-utils';
 
@@ -53,7 +54,7 @@ async function fetchOpenFdaInteractionNote(medicine: string): Promise<OpenFdaInt
 }
 
 export async function POST(req: NextRequest) {
-  const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local';
+  const clientIp = getClientIp(req);
   if (!checkApiRateLimit(`safety-check:${clientIp}`, 25, 60_000)) {
     return NextResponse.json(
       { error: 'Too many safety check requests. Please wait a moment.' },

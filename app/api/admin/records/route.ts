@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { extractBearerToken } from '@/lib/api-helpers';
 import { listFacilityReports, markFacilityReportReviewed } from '@/lib/facility-reports-store';
 import { listAnswerReports, markAnswerReportReviewed } from '@/lib/answer-reports-store';
 import { resolveGoogleMapsApiKey } from '@/lib/maps-key';
@@ -96,9 +97,7 @@ function ensureStore() {
 }
 
 function requireAdmin(req: NextRequest) {
-  const header = req.headers.get('authorization') || '';
-  const token = header.toLowerCase().startsWith('bearer ') ? header.slice(7).trim() : null;
-  return verifyAdminSessionToken(token);
+  return verifyAdminSessionToken(extractBearerToken(req));
 }
 
 export async function GET(req: NextRequest) {

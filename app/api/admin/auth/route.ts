@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { extractBearerToken, getClientIp } from '@/lib/api-helpers';
 import {
   checkLoginRateLimit,
   claimFirstRunAdminPassword,
@@ -28,15 +29,9 @@ const AuthActionSchema = z.discriminatedUnion('action', [
   }),
 ]);
 
-function extractBearer(req: NextRequest): string | null {
-  const header = req.headers.get('authorization') || '';
-  if (!header.toLowerCase().startsWith('bearer ')) return null;
-  return header.slice(7).trim() || null;
-}
-
 export async function GET(req: NextRequest) {
   const bootstrap = getAdminBootstrapState();
-  const token = extractBearer(req);
+  const token = extractBearerToken(req);
   const session = verifyAdminSessionToken(token);
 
   return NextResponse.json({
@@ -50,7 +45,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local';
+    const clientIp = getClientIp(req);
     const body = await req.json();
     const parsed = AuthActionSchema.safeParse(body);
 
@@ -64,7 +59,7 @@ export async function POST(req: NextRequest) {
     const data = parsed.data;
 
     if (data.action === 'logout') {
-      const token = extractBearer(req);
+      const token = extractBearerToken(req);
       if (token) revokeAdminSessionToken(token);
       return NextResponse.json({ ok: true });
     }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   AlertTriangle,
   ExternalLink,
@@ -32,6 +32,8 @@ export function MedicineSafetyChecker({
   language,
   initialMedicines,
 }: MedicineSafetyCheckerProps) {
+  const initialKey = (initialMedicines || []).join('|');
+  const [prevInitialKey, setPrevInitialKey] = useState(initialKey);
   const [medicines, setMedicines] = useState<string[]>(
     initialMedicines && initialMedicines.length >= 2 ? initialMedicines : []
   );
@@ -42,16 +44,13 @@ export function MedicineSafetyChecker({
 
   const isHi = language === 'hi';
 
-  const initialKey = (initialMedicines || []).join('|');
-  useEffect(() => {
+  if (initialKey !== prevInitialKey) {
+    setPrevInitialKey(initialKey);
     if (initialMedicines && initialMedicines.length >= 2) {
-      queueMicrotask(() => {
-        setMedicines(initialMedicines);
-        setResult(null);
-      });
+      setMedicines(initialMedicines);
+      setResult(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialKey]);
+  }
 
   const handleAddMedicine = (e?: React.FormEvent) => {
     if (e) e.preventDefault();

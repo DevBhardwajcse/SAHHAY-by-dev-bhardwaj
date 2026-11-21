@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { getClientIp } from '@/lib/api-helpers';
 import { addFacilityReport } from '@/lib/facility-reports-store';
 import { checkApiRateLimit } from '@/lib/security-utils';
 
@@ -20,7 +21,7 @@ const ReportSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local';
+    const clientIp = getClientIp(req);
     if (!checkApiRateLimit(`maps-report:${clientIp}`, 10, 60_000)) {
       return NextResponse.json(
         { error: 'Too many reports submitted. Please wait a minute.' },

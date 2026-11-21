@@ -58,7 +58,9 @@ export function evaluateLabValueStatus(
   return 'unclear';
 }
 
-export function summarizeOutOfRangeCount(parameters: ParsedLabParameter[]): {
+export function summarizeOutOfRangeCount(
+  parameters: readonly Pick<ParsedLabParameter, 'status'>[]
+): {
   total: number;
   outOfRange: number;
   highCount: number;
